@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Photo Mosaic</title>
+    <script src="/static/styles/upload_image_script.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/upload_image_style.css') }}">
+</head>
+<body>
+    <form action="/upload-image" method="POST" enctype="multipart/form-data">
+        <input type="file" class="custom-file-input" name="image"  id="btn_upload" onchange="form.submit()" style="display:none;">
+    </form>
+    <div style="margin-left:600px;">
+        <button class="n_button" onclick="document.getElementById('btn_upload').click()">Upload</button>
+        <form action="/full-screen" method="POST" enctype="multipart/form-data">
+            {% for mosaic in mosaic_data %}
+                <button class="n_button" type="submit" name="download" value="{{ mosaic.file_name }}">full screen</button>
+            {% endfor %}
+        </form>
+    </div>
+    {% for mosaic in mosaic_data %}
+    <div class="img-zoom-container" style=" margin-top:50px;float:left">
+        <div class="div1" style="width:500;float:left">
+            <img src="{{ mosaic.file_name_1 }}" width="500px">
+            <img id="myimage" src="{{ url_for('send_uploaded_file', filename=mosaic.file_name) }}" width="500" height="500" style="margin-top:0px;">
+            <div id="myresult" class="img-zoom-result" style="float:right; margin-top:-1;"></div>
+        </div>
+    </div>
+    {% endfor %}
+    <script>
+        imageZoom("myimage", "myresult");
+    </script>
+</body>
+</html>
