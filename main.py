@@ -1,58 +1,37 @@
-import cv2
+from PIL import Image, ImageDraw
 import numpy as np
-import matplotlib.pyplot as plt
-
-file_name = ['a', 'b']
 
 
-def converter(img_name):
-    img = cv2.imread('/Users/sai/Desktop/everything/Programming/mosaic/images/' + str(img_name) + '.jpg')
-    cv2.imwrite('/Users/sai/Desktop/everything/Programming/mosaic/static/images/' + str(img_name) + '.jpg', img)
-    def adjust_gamma(image, gamma=1.0):
-        invGamma = 1.0 / gamma
-        table = np.array([
-            ((i / 255.0) ** invGamma) * 255
-            for i in np.arange(0, 256)])
-        return cv2.LUT(image.astype(np.uint8), table.astype(np.uint8))
+def create_dot_mosaic(image_path, dot_size=10, background="white", output_path='dot_mosaic.png'):
+    # Open the image
+    img = Image.open(image_path)
+    img = img.convert('RGB')
+    img_width, img_height = img.size
 
-    circle_gap = 5
-    image_resizer = 8
-    border = 100
-    print(img.shape[0], img.shape[1])
-    if 200 < img.shape[0] < 500:
-        # 251, 201
-        circle_gap = 5  # circle gap
-        image_resizer = 8  # image resizer
-        border = 100  # border size
-    if 500 < img.shape[0] < 1000:
-        # 866 882
-        circle_gap = 5  # circle gap
-        image_resizer = 8  # image resizer
-        border = 100  # border size
-    if 1000 < img.shape[0] < 2000:
-        # 1334 750
-        circle_gap = 5  # circle gap
-        image_resizer = 8  # image resizer
-        border = 100  # border size
-    if 2000 < img.shape[0] < 5000:
-        # 4032 3024
-        circle_gap = 5  # circle gap
-        image_resizer = 60  # image resizer
-        border = 350  # border size
-    img = cv2.copyMakeBorder(img, border, border, border, border, cv2.BORDER_CONSTANT, value=[255, 255, 255])
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    smaller = cv2.resize(img_gray, (int(img.shape[0] / image_resizer), int(img.shape[1] / image_resizer)))
-    plt.figure(figsize=(int(smaller.shape[0] / circle_gap), int(smaller.shape[1] / circle_gap)))
-    X, Y = np.meshgrid(np.arange(smaller.shape[1]), np.arange(smaller.shape[0]))
-    plt.scatter(X.flatten(), Y.flatten(), c=smaller.flatten())
-    plt.axis('off')
-    plt.savefig('/Users/sai/Desktop/everything/Programming/mosaic/faces.png')
-    img_new = cv2.imread('/Users/sai/Desktop/everything/Programming/mosaic/faces.png')
-    img_new = cv2.rotate(img_new, cv2.ROTATE_180)
-    img_new = cv2.flip(img_new, 1)
-    img_new = adjust_gamma(img_new, gamma=0.4)
-    cv2.imwrite('/Users/sai/Desktop/everything/Programming/mosaic/results/' + str(img_name) + '.jpg', img_new)
-    cv2.imwrite('/Users/sai/Desktop/everything/Programming/mosaic/static/results/' + str(img_name) + '.jpg', img_new)
+    # Create a new image for the mosaic dot output
+    mosaic_img = Image.new('RGB', (img_width, img_height), background)
+    draw = ImageDraw.Draw(mosaic_img)
 
-for i in file_name:
-    converter(i)
+    # Convert the image to a numpy array
+    img_array = np.array(img)
+
+    # Loop through the image pixels with a step size of dot_size
+    for y in range(0, img_height, dot_size):
+        for x in range(0, img_width, dot_size):
+            # Get the color of the current block
+            block = img_array[y:y + dot_size, x:x + dot_size]
+            avg_color = block.mean(axis=(0, 1)).astype(int)
+
+            # Draw a circle with the average color of the block
+            bbox = [x, y, x + dot_size, y + dot_size]
+            draw.ellipse(bbox, fill=tuple(avg_color))
+
+    # Save the output image
+    mosaic_img.save(output_path)
+
+
+create_dot_mosaic('input/1.jpg', dot_size=10, background="black", output_path='output/1.png')
+create_dot_mosaic('input/2.jpg', dot_size=11, output_path='output/2.png')
+create_dot_mosaic('input/3.jpg', dot_size=12, output_path='output/3.png')
+create_dot_mosaic('input/4.jpg', dot_size=13, output_path='output/4.png')
+create_dot_mosaic('input/5.jpg', dot_size=14, output_path='output/5.png')
